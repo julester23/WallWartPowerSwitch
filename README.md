@@ -7,10 +7,10 @@ The voltage and current are monitored at X frequency. Over-current thresholds ar
 This device was created to help replace expensive bench power-supplies without compromising safety or losing remote control entirely.
 
 ## Hardware
-The hardware is based on the RP2040 ARM micro-controller. The current is monitored using a TI INA230 device.
+The hardware is based on the [RP2040](https://datasheets.raspberrypi.com/rp2040/rp2040-datasheet.pdf) ARM micro-controller. The current is monitored using a TI INA230 device.
 
 ## Firmware
-Built on the pico-sdk.
+Built on the [pico-sdk](https://github.com/raspberrypi/pico-sdk). See the [pico-sdk docs](https://raspberrypi.github.io/pico-sdk-doxygen/index.html).
 
 ## Software
 Python interface
