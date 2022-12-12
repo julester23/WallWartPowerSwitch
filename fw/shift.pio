@@ -1,0 +1,36 @@
+.program shiftout
+.side_set 2
+
+loop:
+    out    pins, 1         side 0     
+    jmp    !osre, 0        side 1     
+    nop                    side 2      
+
+% c-sdk {
+
+static inline void shiftout_program_init(PIO pio, uint sm, uint offset, uint data, uint clk, uint latch) {
+    pio_sm_config c = shiftout_program_get_default_config(offset);
+    // Map the state machine's OUT pin group to one pin, namely the `pin`
+    // parameter to this function.
+    sm_config_set_out_pins(&c, data, 1);
+    // Map the side set pin `clk`
+    sm_config_set_sideset_pins(&c, clk);
+    // Enable auto-pull
+    sm_config_set_out_shift(&c, true, true, 24);
+    // Set this pin's GPIO function (connect PIO to the pad)
+    pio_gpio_init(pio, clk);
+    pio_gpio_init(pio, data);
+    pio_gpio_init(pio, latch);
+    // Set the pin direction to output at the PIO
+    pio_sm_set_consecutive_pindirs(pio, sm, clk, 1, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, data, 1, true);
+    pio_sm_set_consecutive_pindirs(pio, sm, latch, 1, true);
+    // Run at 2000Hz:
+    sm_config_set_clkdiv(&c, 1000);
+    // Load our configuration, and jump to the start of the program
+    pio_sm_init(pio, sm, offset, &c);
+    // Set the state machine running
+    pio_sm_set_enabled(pio, sm, true);
+}
+
+%}

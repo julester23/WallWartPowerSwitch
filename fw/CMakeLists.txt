@@ -11,12 +11,14 @@ project(my_project C CXX ASM )
 pico_sdk_init()
 
 # rest of your project
-add_executable(main
-    main.c
-)
+add_executable(shift)
+
+pico_generate_pio_header(shift ${CMAKE_CURRENT_LIST_DIR}/shift.pio)
+
+target_sources(shift PRIVATE main.c)
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(main pico_stdlib hardware_i2c pico_stdio_usb)
+target_link_libraries(shift PRIVATE pico_stdlib hardware_adc hardware_dma hardware_gpio hardware_pio pico_stdio_usb)
 
 # create map/bin/hex/uf2 file in addition to ELF.
-pico_add_extra_outputs(main)
+pico_add_extra_outputs(shift)
