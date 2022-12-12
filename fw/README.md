@@ -8,12 +8,10 @@ Seven segment digits are shifted into the most-significant digit first.
 
 
 ## Pinout
-+==========+=================+
 | Pin      | Description     |
-+==========+=================+
+| -------- | --------------- |
 | 26       | Analog ch0      |
 | 27       | Analog ch1      |
 | 8        | Serial data     |
 | 9        | Serial clock    |
 | 10       | Serial latch    |
-+----------+-----------------+
