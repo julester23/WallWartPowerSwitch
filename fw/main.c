@@ -38,7 +38,7 @@ void pio_print(PIO pio, int32_t num, uint8_t dp) {
 }
 int main() {
 
-    //stdio_init_all();
+    stdio_init_all();
 
     PIO pio = pio0;
     uint offset = pio_add_program(pio0, &shiftout_program);
@@ -104,6 +104,7 @@ int main() {
         //
         //printf("Raw value: 0x%03x, voltage: %f V\n", result, result * conversion_factor);
         sleep_ms(100);
+        printf("Hello.\n");
         //printf("Putting %i\n", digits[i++ % 2]);
         i++;
         num = capture_buf[1];
