@@ -1,9 +1,14 @@
 #include <stdio.h>
-#include "pico/stdlib.h"
+#include <stdlib.h>
+
 #include "hardware/gpio.h"
 #include "hardware/adc.h"
 #include "hardware/dma.h"
 #include "shift.pio.h"
+
+#include "bsp/board.h"
+#include "tusb.h"
+#include "usbtmc_app.h"
 
 uint8_t digits[] = {
     0b11111100, // 0
@@ -24,6 +29,17 @@ uint8_t digits[] = {
 
 uint8_t capture_buf[CAPTURE_DEPTH];
 
+void led_indicator_pulse(void) {
+    static uint32_t last = 0;
+    static bool state = false;
+
+    if ((board_millis() - last) < 500)
+    {
+        state = !state;
+        board_led_write(state);
+    }
+}
+
 
 void pio_print(PIO pio, int32_t num, uint8_t dp) {
     // TODO: dp to turn on DP light at 1s, 10s, 100s place
@@ -38,7 +54,9 @@ void pio_print(PIO pio, int32_t num, uint8_t dp) {
 }
 int main() {
 
-    stdio_init_all();
+    // stdio_init_all();
+    board_init(); //tinyusb board init
+    tusb_init();
 
     PIO pio = pio0;
     uint offset = pio_add_program(pio0, &shiftout_program);
@@ -103,9 +121,10 @@ int main() {
         //uint16_t result = adc_fifo_get();
         //
         //printf("Raw value: 0x%03x, voltage: %f V\n", result, result * conversion_factor);
-        sleep_ms(100);
-        printf("Hello.\n");
-        //printf("Putting %i\n", digits[i++ % 2]);
+
+        tud_task(); // tinyusb device task
+        usbtmc_app_task_iter();
+
         i++;
         num = capture_buf[1];
 
@@ -117,5 +136,7 @@ int main() {
         //adc_fifo_drain();
         //i %= 10;
     }
+
+    return 0;
 }
 
