@@ -70,6 +70,24 @@ uint8_t const * tud_descriptor_device_cb(void)
 }
 
 //--------------------------------------------------------------------+
+// HID Report Descriptor
+//--------------------------------------------------------------------+
+
+uint8_t const desc_hid_report[] =
+{
+  TUD_HID_REPORT_DESC_GENERIC_INOUT(CFG_TUD_HID_EP_BUFSIZE)
+};
+
+// Invoked when received GET HID REPORT DESCRIPTOR
+// Application return pointer to descriptor
+// Descriptor contents must exist long enough for transfer to complete
+uint8_t const * tud_hid_descriptor_report_cb(uint8_t itf)
+{
+  (void) itf;
+  return desc_hid_report;
+}
+
+//--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
@@ -102,6 +120,7 @@ uint8_t const * tud_descriptor_device_cb(void)
 enum
 {
   ITF_NUM_USBTMC,
+  ITF_NUM_HID,
   ITF_NUM_TOTAL
 };
 
@@ -118,6 +137,7 @@ enum
   #define EPNUM_MSC   0x03
 #endif
 
+#define EPNUM_HID   0x01
 
 uint8_t const desc_configuration[] =
 {
@@ -125,6 +145,8 @@ uint8_t const desc_configuration[] =
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
 
   TUD_USBTMC_DESC(ITF_NUM_USBTMC),
+  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, 0x80 | EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
+
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR

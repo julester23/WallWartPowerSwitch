@@ -81,6 +81,10 @@
 #define CFG_TUD_USBTMC                1
 #define CFG_TUD_USBTMC_ENABLE_INT_EP  1
 #define CFG_TUD_USBTMC_ENABLE_488     1
+#define CFG_TUD_HID                   1
+
+// HID buffer size Should be sufficient to hold ID (if any) + Data
+#define CFG_TUD_HID_EP_BUFSIZE    64
 
 #ifdef __cplusplus
  }
