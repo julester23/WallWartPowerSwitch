@@ -40,6 +40,35 @@ void led_indicator_pulse(void) {
     }
 }
 
+// USB Descriptors
+//  1. USBTMC
+//  2. HID device? (see if streaming is feasible, look up HIDAPI)
+//
+// There are several tasks to do concurrently:
+//  - Process the voltage and current readings
+//  - Scan for key presses
+//  - Take actions to\from USB
+//  - Update the display (via PIO shift)
+//
+// ADC Scanning & DMA
+// The ADC is configured to make round-robin readings of 3 pins and DMA is
+// configured to move those readings into memory as soon as they are available.
+// TODO: DMA can be chained to enable automatic re-configuration and copying to
+// a new location while the old location is processed.
+//
+// First try:
+//  - Measure 2 channels
+//  - 1KHz / channel
+//  - Ping-pong buffer
+//  - Buffer length: 500 (or 512 if necessary)
+//  - Digital low-pass for voltage and current display
+//  - Digital low-pass for UVP\OVP\OCP
+//
+//  ## Settings for controller
+//  ### Over-current
+//  - Threshold
+//  - Low-pass
+
 //--------------------------------------------------------------------+
 // USB HID
 //--------------------------------------------------------------------+
