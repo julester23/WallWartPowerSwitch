@@ -24,6 +24,7 @@
  */
 
 #include "tusb.h"
+#include "class/hid/hid.h"
 #include "class/usbtmc/usbtmc.h"
 #include "class/usbtmc/usbtmc_device.h"
 
@@ -72,6 +73,29 @@ uint8_t const * tud_descriptor_device_cb(void)
 }
 
 //--------------------------------------------------------------------+
+// HID Report Descriptor
+//--------------------------------------------------------------------+
+
+#if defined(CFG_TUD_HID)
+uint8_t const desc_hid_report[] =
+{
+  TUD_HID_REPORT_DESC_GENERIC_INOUT(CFG_TUD_HID_EP_BUFSIZE)
+};
+
+// Invoked when received GET HID REPORT DESCRIPTOR
+// Application return pointer to descriptor
+// Descriptor contents must exist long enough for transfer to complete
+uint8_t const * tud_hid_descriptor_report_cb(uint8_t itf)
+{
+  (void) itf;
+  return desc_hid_report;
+}
+
+#define EPNUM_HID   0x03
+
+#endif /* CFG_TUD_HID */
+
+//--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
@@ -104,18 +128,26 @@ uint8_t const * tud_descriptor_device_cb(void)
 enum
 {
   ITF_NUM_USBTMC,
-  //ITF_NUM_HID,
+  ITF_NUM_HID,
   ITF_NUM_TOTAL
 };
 
 
+#if defined(CFG_TUD_HID) 
+#define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_USBTMC_DESC_LEN + TUD_HID_INOUT_DESC_LEN)
+#else
 #define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_USBTMC_DESC_LEN)
+#endif /* CFG_TUD_HID */
 
 uint8_t const desc_configuration[] =
 {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
   TUD_USBTMC_DESC(ITF_NUM_USBTMC),
+#if defined(CFG_TUD_HID) 
+  // Interface number, string index, protocol, report descriptor len, EP In & Out address, size & polling interval
+  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 2, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, 0x80 | EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
+#endif /* CFG_TUD_HID */
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
