@@ -26,7 +26,8 @@ target_sources(main PUBLIC main.c usb_descriptors.c usbtmc_app.c)
 target_include_directories(main PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 # Add pico_stdlib library which aggregates commonly used features
-target_link_libraries(main PUBLIC pico_stdlib tinyusb_device tinyusb_board hardware_adc hardware_dma hardware_gpio hardware_pio pico_stdio_usb)
+target_link_libraries(main PUBLIC pico_stdlib tinyusb_device tinyusb_board
+    hardware_adc hardware_dma hardware_gpio hardware_pio pico_unique_id)
 
 # enable usb output, disable uart output
 # pico_enable_stdio_usb(main 1)

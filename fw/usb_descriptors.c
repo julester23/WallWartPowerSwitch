@@ -27,6 +27,8 @@
 #include "class/usbtmc/usbtmc.h"
 #include "class/usbtmc/usbtmc_device.h"
 
+#include "pico/unique_id.h"
+
 /* A combination of interfaces must have a unique product id, since PC will save device driver after the first plug.
  * Same VID/PID with different interface e.g MSC (first), then CDC (later) will possibly cause system error on PC.
  *
@@ -70,24 +72,6 @@ uint8_t const * tud_descriptor_device_cb(void)
 }
 
 //--------------------------------------------------------------------+
-// HID Report Descriptor
-//--------------------------------------------------------------------+
-
-uint8_t const desc_hid_report[] =
-{
-  TUD_HID_REPORT_DESC_GENERIC_INOUT(CFG_TUD_HID_EP_BUFSIZE)
-};
-
-// Invoked when received GET HID REPORT DESCRIPTOR
-// Application return pointer to descriptor
-// Descriptor contents must exist long enough for transfer to complete
-uint8_t const * tud_hid_descriptor_report_cb(uint8_t itf)
-{
-  (void) itf;
-  return desc_hid_report;
-}
-
-//--------------------------------------------------------------------+
 // Configuration Descriptor
 //--------------------------------------------------------------------+
 
@@ -120,33 +104,18 @@ uint8_t const * tud_hid_descriptor_report_cb(uint8_t itf)
 enum
 {
   ITF_NUM_USBTMC,
-  ITF_NUM_HID,
+  //ITF_NUM_HID,
   ITF_NUM_TOTAL
 };
 
 
 #define CONFIG_TOTAL_LEN    (TUD_CONFIG_DESC_LEN + TUD_USBTMC_DESC_LEN)
 
-#if CFG_TUSB_MCU == OPT_MCU_LPC175X_6X || CFG_TUSB_MCU == OPT_MCU_LPC177X_8X || CFG_TUSB_MCU == OPT_MCU_LPC40XX
-  // LPC 17xx and 40xx endpoint type (bulk/interrupt/iso) are fixed by its number
-  // 0 control, 1 In, 2 Bulk, 3 Iso, 4 In etc ...
-  // Note: since CDC EP ( 1 & 2), HID (4) are spot-on, thus we only need to force
-  // endpoint number for MSC to 5
-  #define EPNUM_MSC   0x05
-#else
-  #define EPNUM_MSC   0x03
-#endif
-
-#define EPNUM_HID   0x01
-
 uint8_t const desc_configuration[] =
 {
   // Config number, interface count, string index, total length, attribute, power in mA
   TUD_CONFIG_DESCRIPTOR(1, ITF_NUM_TOTAL, 0, CONFIG_TOTAL_LEN, 0x00, 100),
-
   TUD_USBTMC_DESC(ITF_NUM_USBTMC),
-  TUD_HID_INOUT_DESCRIPTOR(ITF_NUM_HID, 0, HID_ITF_PROTOCOL_NONE, sizeof(desc_hid_report), EPNUM_HID, 0x80 | EPNUM_HID, CFG_TUD_HID_EP_BUFSIZE, 10)
-
 };
 
 // Invoked when received GET CONFIGURATION DESCRIPTOR
@@ -158,6 +127,9 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
   return desc_configuration;
 }
 
+static char usbd_serial_str[PICO_UNIQUE_BOARD_ID_SIZE_BYTES * 2 + 1];
+
+
 //--------------------------------------------------------------------+
 // String Descriptors
 //--------------------------------------------------------------------+
@@ -168,7 +140,7 @@ char const* string_desc_arr [] =
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
   "TinyUSB",                     // 1: Manufacturer
   "TinyUSB Device",              // 2: Product
-  "123456",                      // 3: Serials, should use chip ID
+  usbd_serial_str,                      // 3: Serials, should use chip ID
   "TinyUSB USBTMC",              // 4: USBTMC
 };
 
@@ -181,6 +153,11 @@ uint16_t const* tud_descriptor_string_cb(uint8_t index, uint16_t langid)
   (void) langid;
 
   size_t chr_count;
+
+  // Assign the SN using the unique flash id
+  if (!usbd_serial_str[0]) {
+    pico_get_unique_board_id_string(usbd_serial_str, sizeof(usbd_serial_str));
+  }
 
   if ( index == 0)
   {

@@ -73,34 +73,6 @@ void led_indicator_pulse(void) {
 // USB HID
 //--------------------------------------------------------------------+
 
-// Invoked when received GET_REPORT control request
-// Application must fill buffer report's content and return its length.
-// Return zero will cause the stack to STALL request
-uint16_t tud_hid_get_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t* buffer, uint16_t reqlen)
-{
-    // TODO not Implemented
-    (void) itf;
-    (void) report_id;
-    (void) report_type;
-    (void) buffer;
-    (void) reqlen;
-
-    return 0;
-}
-
-// Invoked when received SET_REPORT control request or
-// received data on OUT endpoint ( Report ID = 0, Type = 0 )
-void tud_hid_set_report_cb(uint8_t itf, uint8_t report_id, hid_report_type_t report_type, uint8_t const* buffer, uint16_t bufsize)
-{
-    // This example doesn't use multiple report and report ID
-    (void) itf;
-    (void) report_id;
-    (void) report_type;
-
-    // echo back anything we received from host
-    tud_hid_report(0, buffer, bufsize);
-}
-
 
 void pio_print(PIO pio, int32_t num, uint8_t dp) {
     // TODO: dp to turn on DP light at 1s, 10s, 100s place
@@ -118,6 +90,7 @@ int main() {
     // stdio_init_all();
     board_init(); //tinyusb board init
     tusb_init();
+    //tud_init(BOARD_DEVICE_RHPORT_NUM);
 
     PIO pio = pio0;
     uint offset = pio_add_program(pio0, &shiftout_program);
@@ -186,6 +159,7 @@ int main() {
         tud_task(); // tinyusb device task
         usbtmc_app_task_iter();
 
+        /*
         i++;
         num = capture_buf[1];
 
@@ -193,6 +167,7 @@ int main() {
 
         dma_channel_wait_for_finish_blocking(dma_chan);
         dma_channel_set_write_addr(dma_chan, capture_buf, 1);
+        */
 
         //adc_fifo_drain();
         //i %= 10;
