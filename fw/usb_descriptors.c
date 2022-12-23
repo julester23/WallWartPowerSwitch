@@ -140,7 +140,7 @@ char const* string_desc_arr [] =
   (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
   "TinyUSB",                     // 1: Manufacturer
   "TinyUSB Device",              // 2: Product
-  usbd_serial_str,                      // 3: Serials, should use chip ID
+  usbd_serial_str,               // 3: Use chip ID
   "TinyUSB USBTMC",              // 4: USBTMC
 };
 

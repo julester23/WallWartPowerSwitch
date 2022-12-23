@@ -72,17 +72,13 @@ tud_usbtmc_app_capabilities  =
 #define IEEE4882_STB_SRQ          (0x40u)
 
 static const char idn[] = "TinyUSB,ModelNumber,SerialNumber,FirmwareVer123456\r\n";
-//static const char idn[] = "TinyUSB,ModelNumber,SerialNumber,FirmwareVer and a bunch of other text to make it longer than a packet, perhaps? lets make it three transfers...\n";
 static volatile uint8_t status;
 
-// 0=not query, 1=queried, 2=delay,set(MAV), 3=delay 4=ready?
-// (to simulate delay)
+// 0=not query, 1=queried, 2=ready?
 static volatile uint16_t queryState = 0;
-static volatile uint32_t queryDelayStart;
 static volatile uint32_t bulkInStarted;
 static volatile uint32_t idnQuery;
 
-static uint32_t resp_delay = 125u; // Adjustable delay, to allow for better testing
 static size_t buffer_len;
 static size_t buffer_tx_ix; // for transmitting using multiple transfers
 static uint8_t buffer[225]; // A few packets long should be enough.
@@ -148,19 +144,11 @@ bool tud_usbtmc_msg_data_cb(void *data, size_t len, bool transfer_complete)
   queryState = transfer_complete;
   idnQuery = 0;
 
-  if(transfer_complete && (len >=4) && !strncasecmp("*idn?",data,4))
-  {
-    idnQuery = 1;
-  }
-  if(transfer_complete && !strncasecmp("delay ",data,5))
-  {
-    queryState = 0;
-    int d = atoi((char*)data + 5);
-    if(d > 10000)
-      d = 10000;
-    if(d<0)
-      d=0;
-    resp_delay = (uint32_t)d;
+  if(transfer_complete) {
+    if((len >=4) && !strncasecmp("*idn?",data,4))
+    {
+      idnQuery = 1;
+    }
   }
   tud_usbtmc_start_bus_read();
   return true;
@@ -216,27 +204,15 @@ void usbtmc_app_task_iter(void) {
   case 0:
     break;
   case 1:
-    queryDelayStart = board_millis();
     queryState = 2;
+    status |= 0x10u; // MAV
+    status |= 0x40u; // SRQ
     break;
-  case 2:
-    if( (board_millis() - queryDelayStart) > resp_delay) {
-      queryDelayStart = board_millis();
-      queryState=3;
-      status |= 0x10u; // MAV
-      status |= 0x40u; // SRQ
-    }
-    break;
-  case 3:
-    if( (board_millis() - queryDelayStart) > resp_delay) {
-      queryState = 4;
-    }
-    break;
-  case 4: // time to transmit;
+  case 2: // time to transmit;
     if(bulkInStarted && (buffer_tx_ix == 0)) {
       if(idnQuery)
       {
-        tud_usbtmc_transmit_dev_msg_data(idn,  tu_min32(sizeof(idn)-1,msgReqLen),true,false);
+        tud_usbtmc_transmit_dev_msg_data(idn, tu_min32(sizeof(idn)-1,msgReqLen),true,false);
         queryState = 0;
         bulkInStarted = 0;
       }
