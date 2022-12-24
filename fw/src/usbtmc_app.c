@@ -130,7 +130,6 @@ bool tud_usbtmc_msgBulkOut_start_cb(usbtmc_msg_request_dev_dep_out const * msgHe
 
 bool tud_usbtmc_msg_data_cb(void *data, size_t len, bool transfer_complete)
 {
-  // If transfer isn't finished, we just ignore it (for now)
 
   if(len + buffer_len < sizeof(buffer))
   {
@@ -144,6 +143,7 @@ bool tud_usbtmc_msg_data_cb(void *data, size_t len, bool transfer_complete)
   queryState = transfer_complete;
   idnQuery = 0;
 
+  // If transfer isn't finished, we just ignore it (for now)
   if(transfer_complete) {
     if((len >=4) && !strncasecmp("*idn?",data,4))
     {
