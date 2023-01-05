@@ -20,6 +20,8 @@ add_executable(main)
 
 pico_generate_pio_header(main ${CMAKE_CURRENT_LIST_DIR}/shift.pio)
 
+add_subdirectory(gpib)
+
 target_sources(main PUBLIC main.c usb_descriptors.c usbtmc_app.c)
 
 # Make sure TinyUSB can find tusb_config.h
